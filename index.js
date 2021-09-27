@@ -2,6 +2,8 @@ tf.enableProdMode()
 
 const text2mel = tf.loadGraphModel('models/FASTSPEECH2/int8/model.json');
 const vocoder = tf.loadGraphModel('models/MB_MELGAN/int8/model.json');
+// const text2mel = tf.loadGraphModel('tfjs_opt_models/FASTSPEECH2/epoch_200000_baseline_int8/model.json');
+// const vocoder = tf.loadGraphModel('tfjs_opt_models/MB_MELGAN/epoch_1000000_baseline_int8/model.json');
 
 
 const audioContext = new AudioContext();
@@ -220,7 +222,7 @@ async function tts(text, ttsStatus) {
     console.timeEnd("mel generation");
     console.time("vocoding");
     ttsStatus.innerText = "음성 생성중 ... (똑딱똑딱)";
-    const wav = (await vocoder).execute(mel[2]);
+    const wav = (await vocoder).execute(mel[3]);
     console.timeEnd("vocoding");
     console.timeEnd("inference");
     ttsStatus.innerText = "끗!!";
