@@ -1,25 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap');
+
 body {
-    text-align: center;
+  text-align: center;
 }
 
 * {
-    font-family: sans-serif;
+  font-family: 'Black Han Sans', sans-serif;
+  font-weight: lighter;
+}
+
+.header {
+  margin: 10vh 0 5vh;
 }
 
 #tts-status {
-    margin: 8 0 8 0;
+  margin: 8 0 8 0;
 }
 
 #tts-input {
-    width: 50vw;
-    height: 12em;
+  width: 50vw;
+  height: 12em;
 }
 
 #tts-start {
-    font-size: large;
-    margin: 4px;
-    padding: 5px;
-    background: #ddd;
-    border: 1px solid rgb(44, 44, 44);
-    border-radius: 0.25em;
+  font-size: 0.9rem;
+  margin: 4px;
+  padding: 5px;
+  background: #fff;
+  border: 0.5px solid rgb(44, 44, 44);
+  border-radius: 0.25em;
 }
