@@ -5,18 +5,21 @@
         <title>TensorflowTTS-js</title>
         <link href="style.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.8.0/dist/tf.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/transliteration@2.2.0/dist/browser/bundle.umd.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/number-to-words@1.2.4/numberToWords.min.js"></script>
         <script src="index.js"></script>
+        <!-- <script src="index_debug.js"></script> -->
         <script src="jamo.js"></script>
+        <script src="korean_dict.js"></script>
     </head>
 
     <body>
         <h1>한국어 TTS beta ver.</h1>
-        <textarea placeholder="여기에다가 글을 써주세요" autofocus spellcheck id="tts-input"></textarea>
+        <p id="main-status"></p>
+        <textarea placeholder="여기에다가 글을 써주세요" autofocus spellcheck id="tts-input">안녕하세요 여기에다가 글을 써주세요</textarea>
         <br>
         <p id="tts-status"></p>
         <button id="tts-start">목소리 만들기</button>
+        <p id="runtime"></p>
+
     </body>
 
 </html>

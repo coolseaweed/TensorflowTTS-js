@@ -1,10 +1,12 @@
 tf.enableProdMode()
+// tf.setBackend('webgl')
 
 const text2mel = tf.loadGraphModel('models/FASTSPEECH2/int8/model.json');
 const vocoder = tf.loadGraphModel('models/MB_MELGAN/int8/model.json');
-// const text2mel = tf.loadGraphModel('tfjs_opt_models/FASTSPEECH2/epoch_200000_baseline_int8/model.json');
-// const vocoder = tf.loadGraphModel('tfjs_opt_models/MB_MELGAN/epoch_1000000_baseline_int8/model.json');
 
+
+
+// ----------------- FUNCTIONS  -----------------
 
 const audioContext = new AudioContext();
 async function playAudio(wav) {
@@ -17,114 +19,46 @@ async function playAudio(wav) {
 }
 
 
-const symbols = [
-    "pad",
-    "-",
-    "!",
-    "'",
-    "(",
-    ")",
-    ",",
-    "-",
-    ".",
-    ":",
-    ";",
-    "?",
-    " ",
-    "\u1100", // 'ㄱ'
-    "\u1101", // 'ㄲ'
-    "\u1102", // 'ㄴ'
-    "\u1103", // 'ㄷ'
-    "\u1104", // 'ㄸ'
-    "\u1105", // 'ㄹ'
-    "\u1106", // 'ㅁ'
-    "\u1107", // 'ㅂ'
-    "\u1108", // 'ㅃ'
-    "\u1109", // 'ㅅ'
-    "\u110a", // 'ㅆ'
-    "\u110b", // 'ㅇ'
-    "\u110c", // 'ㅈ'
-    "\u110d", // 'ㅉ'
-    "\u110e", // 'ㅉ'
-    "\u110f", // 'ㅊ'
-    "\u1110", // 'ㅋ'
-    "\u1111", // 'ㅍ'
-    "\u1112", // 'ㅎ'
-    "\u1161", // 'ㅏ'
-    "\u1162", // 'ㅐ'
-    "\u1163", // 'ㅑ'
-    "\u1164", // 'ㅒ'
-    "\u1165", // 'ㅓ'
-    "\u1166", // 'ㅔ'
-    "\u1167", // 'ㅕ'
-    "\u1168", // 'ㅖ'
-    "\u1169", // 'ㅗ'
-    "\u116a", // 'ㅘ'
-    "\u116b", // 'ㅙ'
-    "\u116c", // 'ㅚ'
-    "\u116d", // 'ㅛ'
-    "\u116e", // 'ㅜ'
-    "\u116f", // 'ㅝ'
-    "\u1170", // 'ㅞ'
-    "\u1171", // 'ㅟ'
-    "\u1172", // 'ㅠ'
-    "\u1173", // 'ㅡ'
-    "\u1174", // 'ㅢ'
-    "\u1175", // 'ㅣ'
-    "\u11a8", // 'ㄱ'
-    "\u11a9", // 'ㄲ'
-    "\u11aa", // 'ㄳ'
-    "\u11ab", // 'ㄴ'
-    "\u11ac", // 'ㄵ'
-    "\u11ad", // 'ㄶ'
-    "\u11ae", // 'ㄷ'
-    "\u11af", // 'ㄹ'
-    "\u11b0", // 'ㄺ'
-    "\u11b1", // 'ㄻ'
-    "\u11b2", // 'ㄼ'
-    "\u11b3", // 'ㄽ'
-    "\u11b4", // 'ㄾ'
-    "\u11b5", // 'ㄿ'
-    "\u11b6", // 'ㅀ'
-    "\u11b7", // 'ㅁ'
-    "\u11b8", // 'ㅂ'
-    "\u11b9", // 'ㅄ'
-    "\u11ba", // 'ㅅ'
-    "\u11bb", // 'ㅆ'
-    "\u11bc", // 'ㅇ'
-    "\u11bd", // 'ㅈ'
-    "\u11be", // 'ㅊ'
-    "\u11bf", // 'ㅋ'
-    "\u11c0", // 'ㅌ'
-    "\u11c1", // 'ㅍ'
-    "\u11c2", // 'ㅎ'
-    "eos",
-]
-
-
-
-function symbolId(symbol) {
-    return symbols.indexOf(symbol);
-}
-
-const curly_re = /(.*?)\{(.+?)\}(.*)/;
+const korean_re = /[가-힣0-9\.\!\?]+/g;
+const decimal_number_re = /([0-9]+\.[0-9]+)/g;
+const number_re = /([0-9]+)/g;
 
 function convertText(text) {
+
     let sequence = [];
+    
+    text = normalizeText(text);
+    console.log(`NORM: ${text}`)
+    
+    sequence = sequence.concat(convertSymbols(HANGUL.toJamos(text)));
 
-    while (text.length != 0) {
-        let m = text.match(curly_re);
-
-        if (m == null) {
-            sequence = sequence.concat(convertSymbols(HANGUL.toJamos(text)));
-            break;
-        }
-        sequence = sequence.concat(convertSymbols(HANGUL.toJamos(m[1])));
-        sequence = sequence.concat(convertArpabet(m[2]));
-        text = m[3];
-    }
-    sequence = sequence.concat(symbolId("eos"));
     return sequence;
+}
+
+
+function normalizeText(text) {
+
+    text = text.replace(decimal_number_re, expandDecimalPoint);
+    text = text.replace(number_re, convertNumber);
+    text = text.match(korean_re).join(' ');
+    text = collapseWhitespace(text);
+
+    return text
+}
+
+
+function expandDecimalPoint(match, group) {
+    return group.replace(".", "쩜");
+}
+
+function convertNumber(text) {
+
+    return text.split('').map(char => singleNum2kor[char]).join('');
+}
+
+function collapseWhitespace(text) {
+    text.replace(/\s+/, " ");
+    return text;
 }
 
 function convertSymbols(text) {
@@ -134,72 +68,17 @@ function convertSymbols(text) {
     return text.filter(keepSymbol).map(symbolId);
 }
 
-function convertArpabet(text) {
-    return convertSymbols(text.split(/\s+/).map(char => "@" + char));
-}
-
 function keepSymbol(symbol) {
     return symbols.indexOf(symbol) != -1 && symbol != "_" && symbol != "~";
 }
 
-function cleanText(text) {
-    text = transliterate(text);
-    text = text.toLowerCase();
-    text = expandNumbers(text);
-    text = expandAbbreviations(text);
-    text = collapseWhitespace(text);
-    return text;
-}
-
-function collapseWhitespace(text) {
-    text.replace(/\s+/, " ");
-    return text;
-}
 
 
 
-const comma_number_re = /([0-9][0-9\,]+[0-9])/;
-const decimal_number_re = /([0-9]+\.[0-9]+)/;
-const dollars_re = /\$([0-9\.\,]*[0-9]+)/;
-const ordinal_re = /[0-9]+(st|nd|rd|th)/;
-const number_re = /[0-9]+/;
-
-function expandNumbers(text) {
-    text = text.replace(comma_number_re, remove_commas);
-    text = text.replace(dollars_re, expand_dollars);
-    text = text.replace(decimal_number_re, expand_decimal_point);
-    text = text.replace(ordinal_re, expand_ordinal);
-    text = text.replace(number_re, expand_number);
-    return text;
-}
-
-function remove_commas(match, group) {
-    return group.replace(",", "");
-}
-
-
-function expand_decimal_point(match, group) {
-    return group.replace(".", " 쩜 ");
-}
-
-
-function expand_ordinal(match) {
-    return numberToWords.toWordsOrdinal(match);
-}
-
-
-function expand_number(match) {
-    const num = parseInt(match);
-    return numberToWords.toWords(num);
-}
-
-
-
+// ----------------- MAIN -----------------
 
 async function tts(text, ttsStatus) {
     ttsStatus.innerText = "Converting input";
-
-
 
     const input_ids = tf.tensor([convertText(text)], null, 'int32');
 
@@ -236,9 +115,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const ttsInput = document.getElementById("tts-input");
     const ttsStart = document.getElementById("tts-start");
     const ttsStatus = document.getElementById("tts-status");
+    let runtime = document.getElementById("runtime");
+
     ttsStart.addEventListener("click", async function () {
         await tts(ttsInput.value, ttsStatus);
     });
+
+
 });
 
 
