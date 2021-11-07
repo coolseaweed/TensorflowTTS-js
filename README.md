@@ -15,4 +15,4 @@ Simple export version of TensorflowTTS's fastspeech + multiband mel-gan using KS
 - [Tensorflow-js TTS](https://github.com/TensorSpeech/TensorFlowTTS)
 
 ## LICENSE
-All codes are licensed the MIT
+All code is MIT licensed.
